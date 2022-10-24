@@ -1,2 +1,2 @@
 # Space-Shooter
-Prototype of space shooting game
+![Архитектура проекта](Assets/Architecture.png)
