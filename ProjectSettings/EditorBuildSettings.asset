@@ -6,9 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Space Adventure/Scenes/Main Menu.unity
-    guid: d6016cbb779e99e48bf384386441f88e
+    path: Assets/Scenes/MainMenu.unity
+    guid: 2a5228c75606fe541b7e59f681f9608d
   - enabled: 1
-    path: Assets/Space Adventure/Scenes/Game.unity
-    guid: 1f84376ce564cf74ab0863c8368808a8
+    path: Assets/Scenes/Game.unity
+    guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects: {}

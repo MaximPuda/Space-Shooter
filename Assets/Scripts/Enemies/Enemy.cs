@@ -1,17 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D), typeof(Rigidbody2D))]
+[RequireComponent(typeof(Collider2D), typeof(Rigidbody2D), typeof(EnemyView))]
 public class Enemy : MonoBehaviour
 {
     protected int Health = 5;
     protected int Damage = 1;
+    protected int Reward = 3;
+
     protected Rigidbody2D RB;
+    protected EnemyView View;
+    protected Collider2D Collider;
 
     private void Awake()
     {
-        RB = GetComponent<Rigidbody2D>();    
+        RB = GetComponent<Rigidbody2D>();
+        View = GetComponent<EnemyView>();
+        Collider = GetComponent<Collider2D>();
     }
 
     public virtual void TakeDamage(int damage)
@@ -23,7 +27,10 @@ public class Enemy : MonoBehaviour
 
     public virtual void Die()
     {
-        transform.gameObject.SetActive(false);
+        enabled = false;
+        Collider.enabled = false;
+        View.Die();
+        GlobalEventManager.SendOnEnemyKilled(Reward);
     }
 
     public virtual void Move(Vector2 velocity)
@@ -33,6 +40,9 @@ public class Enemy : MonoBehaviour
     protected void OnTriggerEnter2D(Collider2D collision)
     {
         if(collision.TryGetComponent<PlayerController>(out PlayerController player))
+        {
             player.TakeDamage(Damage);
+            Die();
+        }
     }
 }

@@ -3,39 +3,53 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D), typeof(PlayerModel))]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private Joystick _joy;
+    [SerializeField] private PlayerInput _input;
+    [SerializeField] private float _moveSpeed;
 
     private PlayerModel _model;
     private Rigidbody2D _rb;
 
-    private Enemy _target;
+    private Enemy _shootTarget;
     private Transform _shootPoint;
+
+    private Vector2 _targetMovePos;
+    private Vector2 _startMovePos;
+    private float _maxXpos;
+    private float _maxYpos;
 
     private void Awake()
     {
-        _rb = GetComponent<Rigidbody2D>();
         _model = GetComponent<PlayerModel>();
+        _rb = GetComponent<Rigidbody2D>();
     }
 
     private void Start()
     {
         _shootPoint = _model.CurrentWeapon.transform;
+        _maxXpos = GameManager.Instance.MaxX;
+        _maxYpos = GameManager.Instance.MaxY;
     }
 
     private void OnEnable()
     {
-        _joy.OnJoystickMove += Move;
+        _input.OnTouchMove += Move;
+        _input.OnTouchStart += StartMove;
+        GlobalEventManager.OnLevelCompleted += PlayerDeactivate;
+        GlobalEventManager.OnEnemyKilled += TakeReward;
     }
 
     private void OnDisable()
     {
-        _joy.OnJoystickMove -= Move;
+        _input.OnTouchMove -= Move;
+        _input.OnTouchStart -= StartMove;
+        GlobalEventManager.OnLevelCompleted -= PlayerDeactivate;
+        GlobalEventManager.OnEnemyKilled -= TakeReward;
     }
 
     private void Update()
     {
-        _target = TryGetTarget();
-        if (_target != null)
+        _shootTarget = TryGetTarget();
+        if (_shootTarget != null)
             Shoot();
     }
 
@@ -49,9 +63,21 @@ public class PlayerController : MonoBehaviour
         return null;
     }
 
-    public void Move(Vector2 direction)
+    private void Move(Vector2 moveTarget)
     {
-        _rb.velocity = direction * _model.Speed;
+        if(moveTarget != Vector2.zero)
+        {
+            _targetMovePos = _startMovePos + moveTarget;
+            _targetMovePos.x = Mathf.Clamp(_targetMovePos.x, -_maxXpos, _maxXpos);
+            _targetMovePos.y = Mathf.Clamp(_targetMovePos.y, -_maxYpos, _maxYpos);
+
+            transform.position = Vector2.MoveTowards(transform.position, _targetMovePos, _moveSpeed * Time.deltaTime);
+        }
+    }
+
+    private void StartMove()
+    {
+        _startMovePos = transform.position;
     }
 
     public void TakeDamage(int damage)
@@ -59,22 +85,33 @@ public class PlayerController : MonoBehaviour
         if(_model.Health > 0)
         {
             _model.DecreaseHealth(damage);
-            Debug.Log("Player take damage " + damage);
+            GlobalEventManager.SendOnPlayerTakeDamge(_model.Health);
         }
 
         if (_model.Health <= 0)
             Die();
     }
 
+    public void TakeReward(int reward)
+    {
+        _model.AddPoints(reward);
+    }
+
     private void Die()
     {
-        Debug.Log("Player is dead");
+        GlobalEventManager.SendOnPlayerDie();
         _rb.velocity = Vector2.zero;
-        gameObject.SetActive(false);
+        _model.CurrentWeapon.gameObject.SetActive(false);
+        enabled = false;
     }
 
     private void Shoot()
     {
         _model.CurrentWeapon.Shoot(Vector2.up);
+    }
+
+    private void PlayerDeactivate()
+    {
+        transform.gameObject.SetActive(false);
     }
 }

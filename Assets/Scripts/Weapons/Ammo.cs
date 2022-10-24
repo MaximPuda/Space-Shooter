@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Collider2D))]
 public class Ammo : MonoBehaviour
 {
     [SerializeField] private float _speed = 10;
@@ -28,7 +27,6 @@ public class Ammo : MonoBehaviour
     {
         if(collision.TryGetComponent<Enemy>(out Enemy target))
         {
-            Debug.Log("Ammo hited asteroid!");
             Destroy(this.gameObject);
             target.TakeDamage(_damage);
         }

@@ -7,4 +7,9 @@ public class GameStateRun : GameState
     public GameStateRun(GameStateMachine machine, string stateName) : base(machine, stateName)
     {
     }
+
+    public override void Enter()
+    {
+        base.Enter();
+    }
 }
